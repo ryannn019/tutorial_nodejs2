@@ -1,6 +1,7 @@
 const express = require('express');
 const session = require('express-session');
 const sqlite3 = require("sqlite3");
+const cookieParser = require('cookie-parser');
 //const bodyparser = require("body-parser");
 
 const app = express();
@@ -162,12 +163,44 @@ app.get("/logout", (req, res) => {
     req.session.destroy(() => {
         res.redirect("/index2");
     });
-
 });
+
+
+
+    app.use(cookieParser());
+
+    // Rota para definir cookie
+    app.get('/set-cookie', (req, res) => {
+      res.cookie('usuarioToken', 'token-local-simples', {
+        httpOnly: true,
+        secure: false,           // OK para localhost sem HTTPS
+        sameSite: 'Lax',
+        maxAge: 1000 * 60 * 60   // 1 hora
+      });
+      res.send('Cookie local definido!');
+    });
+    
+    // Rota para ler o cookie
+    app.get('/ver-cookie', (req, res) => {
+      const token = req.cookies.usuarioToken;
+      console.log('Cookies recebidos:', req.cookies);
+    
+      if (token) {
+        res.send(`Cookie recebido: ${token}`);
+      } else {
+        res.send('Nenhum cookie encontrado.');
+      }
+    });
+
+
+
+
 app.use('/{*erro}', (req, res) => {
     // Envia uma resposta de erro 404
     res.status(404).render('pages/erro', { titulo: "ERRO 404", req: req, msg: "404" });
 });
+
+
 
 
 app.listen(port, () => {
